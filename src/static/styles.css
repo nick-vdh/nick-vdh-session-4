@@ -134,6 +134,8 @@ section h3 {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
   background: rgba(0, 102, 204, 0.05);
   margin-bottom: 4px;
   padding: 8px 12px;
@@ -141,27 +143,59 @@ section h3 {
 }
 
 .consultant-email {
-  flex-grow: 1;
-  margin-right: 8px;
+  flex: 1 1 190px;
+  min-width: 0;
+  overflow-wrap: anywhere;
   font-weight: 500;
   color: #003d7a;
 }
 
+.availability-field {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #333;
+  font-size: 0.85rem;
+}
+
+.availability-input {
+  width: 90px;
+  min-height: 36px;
+  padding: 6px;
+  border: 1px solid #aaa;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.consultant-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.save-availability-btn,
 .delete-btn {
-  background: linear-gradient(135deg, #ff5722, #d32f2f);
-  border: none;
+  min-height: 36px;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 4px;
   color: white;
   cursor: pointer;
-  font-size: 12px;
-  padding: 4px 8px;
-  transition: all 0.2s;
-  border-radius: 4px;
-  font-weight: bold;
+}
+
+.save-availability-btn {
+  background: #0066cc;
+}
+
+.save-availability-btn:hover {
+  background: #003d7a;
+}
+
+.delete-btn {
+  background: #b3261e;
 }
 
 .delete-btn:hover {
-  background: linear-gradient(135deg, #d32f2f, #b71c1c);
-  transform: scale(1.05);
+  background: #861c16;
 }
 
 .consultants-section p {
@@ -190,6 +224,10 @@ section h3 {
   border: 1px solid #ddd;
   border-radius: 4px;
   font-size: 16px;
+}
+
+.form-group input[type="number"] {
+  width: 100%;
 }
 
 button[type="submit"] {

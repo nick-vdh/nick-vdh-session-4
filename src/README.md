@@ -36,9 +36,15 @@ A FastAPI application that enables Slalom consultants to register their capabili
 
 | Method | Endpoint                                                          | Description                                                         |
 | ------ | ----------------------------------------------------------------- | ------------------------------------------------------------------- |
-| GET    | `/capabilities`                                                   | Get all capabilities with details and current consultant assignments |
-| POST   | `/capabilities/{capability_name}/register?email=consultant@slalom.com` | Register consultant for a capability                     |
-| DELETE | `/capabilities/{capability_name}/unregister?email=consultant@slalom.com` | Unregister consultant from a capability              |
+| GET    | `/capabilities`                                                   | Get capabilities, assignments, and recorded individual availability |
+| POST   | `/capabilities/{capability_name}/register?email=consultant@slalom.com&available_hours=10` | Register with optional weekly availability |
+| PUT    | `/capabilities/{capability_name}/consultants/availability?email=consultant@slalom.com&available_hours=10` | Set a registered consultant's weekly availability |
+| DELETE | `/capabilities/{capability_name}/unregister?email=consultant@slalom.com` | Unregister consultant and remove their availability |
+
+Availability is measured in non-negative hours per week and is separate from
+hours assigned to projects. The API reports the total and number of consultants
+with recorded availability. The existing capability-level `capacity` remains
+available as a legacy team figure while individual values are added.
 
 ## Data Model
 
@@ -51,7 +57,8 @@ The application uses a consulting-focused data model:
    - Industry verticals served
    - Required certifications
    - List of consultant emails registered
-   - Available capacity (hours per week)
+   - Legacy capability-level capacity (hours per week)
+   - Consultant-specific available hours per week
    - Geographic location preferences
 
 2. **Consultants** - Uses email as identifier:
