@@ -5,11 +5,13 @@ A FastAPI application that enables Slalom consultants to register their
 capabilities and manage consulting expertise across the organization.
 """
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
 import os
+from math import isfinite
 from pathlib import Path
+from typing import Optional
 
 app = FastAPI(title="Slalom Capabilities Management API",
               description="API for managing consulting capabilities and consultant expertise")
@@ -112,11 +114,24 @@ def root():
 
 @app.get("/capabilities")
 def get_capabilities():
-    return capabilities
+    response = {}
+    for name, capability in capabilities.items():
+        consultant_availability = capability.get("consultant_availability", {})
+        response[name] = {
+            **capability,
+            "consultant_availability": consultant_availability,
+            "recorded_available_hours": sum(consultant_availability.values()),
+            "availability_recorded_count": len(consultant_availability),
+        }
+    return response
 
 
 @app.post("/capabilities/{capability_name}/register")
-def register_for_capability(capability_name: str, email: str):
+def register_for_capability(
+    capability_name: str,
+    email: str,
+    available_hours: Optional[float] = Query(default=None, ge=0),
+):
     """Register a consultant for a capability"""
     # Validate capability exists
     if capability_name not in capabilities:
@@ -132,9 +147,46 @@ def register_for_capability(capability_name: str, email: str):
             detail="Consultant is already registered for this capability"
         )
 
+    if available_hours is not None and not isfinite(available_hours):
+        raise HTTPException(
+            status_code=422,
+            detail="Available hours must be a finite number",
+        )
+
     # Add consultant
     capability["consultants"].append(email)
+    if available_hours is not None:
+        capability.setdefault("consultant_availability", {})[email] = available_hours
     return {"message": f"Registered {email} for {capability_name}"}
+
+
+@app.put("/capabilities/{capability_name}/consultants/availability")
+def update_consultant_availability(
+    capability_name: str,
+    email: str,
+    available_hours: float = Query(..., ge=0),
+):
+    """Set a registered consultant's available hours per week."""
+    if capability_name not in capabilities:
+        raise HTTPException(status_code=404, detail="Capability not found")
+
+    capability = capabilities[capability_name]
+    if not isfinite(available_hours):
+        raise HTTPException(
+            status_code=422,
+            detail="Available hours must be a finite number",
+        )
+
+    if email not in capability["consultants"]:
+        raise HTTPException(
+            status_code=400,
+            detail="Consultant is not registered for this capability",
+        )
+
+    capability.setdefault("consultant_availability", {})[email] = available_hours
+    return {
+        "message": f"Updated availability for {email} in {capability_name}"
+    }
 
 
 @app.delete("/capabilities/{capability_name}/unregister")
@@ -156,4 +208,5 @@ def unregister_from_capability(capability_name: str, email: str):
 
     # Remove consultant
     capability["consultants"].remove(email)
+    capability.get("consultant_availability", {}).pop(email, None)
     return {"message": f"Unregistered {email} from {capability_name}"}
